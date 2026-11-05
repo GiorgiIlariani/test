@@ -37,18 +37,11 @@ module.exports = nextConfig;
 
 const { withSentryConfig } = require('@sentry/nextjs');
 
-module.exports = withSentryConfig(
-  module.exports,
-  {
-    silent: true,
-    org: 'redberry-ltd',
-    project: 'internal-soft-front',
-  },
-  {
-    widenClientFileUpload: true,
-    transpileClientSDK: true,
-    tunnelRoute: '/monitoring',
-    hideSourceMaps: true,
-    disableLogger: true,
-  },
-);
+module.exports = withSentryConfig(module.exports, {
+  silent: true,
+  org: 'redberry-ltd',
+  project: 'internal-soft-front',
+  widenClientFileUpload: true,
+  tunnelRoute: '/monitoring',
+  disableLogger: true,
+});
