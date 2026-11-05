@@ -1,0 +1,5 @@
+export { default as one } from './one.png';
+export { default as two } from './two.png';
+export { default as three } from './three.png';
+export { default as four } from './four.png';
+export { default as five } from './five.png';

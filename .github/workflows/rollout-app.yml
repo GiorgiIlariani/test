@@ -1,0 +1,58 @@
+name: Rollout App
+run-name: Rollout app in ${{ inputs.environment }}
+
+concurrency:
+  group: deploy-${{ inputs.environment }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        type: environment
+
+jobs:
+  rollout:
+    environment: ${{ inputs.environment }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Set project and deployment name as variables
+        run: |
+          deployment_repo=${GITHUB_REPOSITORY#$GITHUB_REPOSITORY_OWNER/}
+          deployment_project=${deployment_repo%-${{ vars.APP }}}
+
+          echo "PROJECT=$deployment_project" >> $GITHUB_ENV
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ vars.AWS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_KEY }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - uses: actions/checkout@v4
+
+      - name: Force new deployment of the ${{ vars.APP }} services
+        run: |
+          ECS_SERVICES=$(aws ecs list-services --cluster ${{ env.PROJECT }}-${{ inputs.environment }}-cluster \
+          --query 'serviceArns[]' --output text)
+
+          APP_SERVICES=$(echo "$ECS_SERVICES" | tr '[:space:]' '\n' | \
+          cut -d '/' -f 3 | grep ^${{ vars.APP }}- || true)
+
+          for SERVICE_NAME in $APP_SERVICES
+          do
+            echo Rolling out $SERVICE_NAME
+            aws ecs update-service \
+            --cluster ${{ env.PROJECT }}-${{ inputs.environment }}-cluster \
+            --service $SERVICE_NAME \
+            --force-new-deployment > /dev/null
+          done
+
+          for SERVICE_NAME in $APP_SERVICES
+          do
+            echo Waiting for $SERVICE_NAME to be stable
+            aws ecs wait services-stable \
+            --cluster ${{ env.PROJECT }}-${{ inputs.environment }}-cluster \
+            --service $SERVICE_NAME
+          done

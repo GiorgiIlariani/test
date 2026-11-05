@@ -1,0 +1,33 @@
+import { DialogPopupProps, DialogRootProps } from '@base-ui/react';
+import { VariantProps } from 'class-variance-authority';
+import { buttonVariants } from 'components';
+import { ButtonHTMLAttributes, MouseEvent } from 'react';
+
+export type ModalProps = {
+  open: DialogRootProps['open'];
+  onOpenChange: DialogRootProps['onOpenChange'];
+  children: React.ReactNode;
+  initialFocus?: DialogPopupProps['initialFocus'];
+  showCloseButton?: boolean;
+  showFooter?: boolean;
+  footer?: React.ReactNode;
+  title?: string | React.ReactNode;
+  description?: string | React.ReactNode;
+  icon?: React.ReactNode;
+  iconWrapperClassName?: string;
+  submitting?: boolean;
+  loading?: boolean;
+  contentClassName?: string;
+  overlayClassName?: string;
+  headerWrapperClassName?: string;
+  closeButtonText?: string;
+  closeButtonVariant?: VariantProps<typeof buttonVariants>['variant'];
+  confirmButtonText?: string;
+  confirmButtonTextLoading?: string;
+  confirmButtonTextSubmitting?: string;
+  confirmButtonVariant?: VariantProps<typeof buttonVariants>['variant'];
+  confirmButtonType?: ButtonHTMLAttributes<HTMLButtonElement>['type'];
+  confirmButtonDisabled?: boolean;
+  removeIconChildrenPadding?: boolean;
+  onConfirm?: (e: MouseEvent<HTMLButtonElement>) => void;
+};

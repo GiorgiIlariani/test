@@ -1,0 +1,31 @@
+import { ChangeEvent, FocusEventHandler, HTMLInputTypeAttribute, KeyboardEvent } from 'react';
+import { RegisterOptions } from 'react-hook-form';
+
+export type Props = {
+  noLabel?: boolean;
+  labelName?: string;
+  canNotEdit?: boolean;
+  needsUnfilledState?: boolean;
+  inputName: string;
+  className?: string;
+  type: HTMLInputTypeAttribute;
+  numberMin?: number;
+  registerOptions?: RegisterOptions<any>;
+  externalOnChange?: (e: ChangeEvent<HTMLInputElement>) => void;
+  needsDraft?: boolean;
+  placeholder: string;
+  blurHandler?: FocusEventHandler;
+  doNotLeavePlaceForError?: boolean;
+  selectName: string;
+  selectOptions: { value: string; text: string }[] | Readonly<{ value: string; text: string }[]>;
+  loading?: boolean;
+  extraLoaderClasses?: string;
+  optionClassName?: string;
+  changeArrowColor?: string;
+  wrapperClasses?: string;
+  errorClasses?: string;
+  externalKeyDownHandler?: (e: KeyboardEvent<HTMLInputElement>) => void;
+  infoText?: string;
+  informationText?: string;
+  containerClasses?: string;
+};

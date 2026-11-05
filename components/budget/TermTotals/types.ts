@@ -1,0 +1,30 @@
+import { Dispatch, SetStateAction } from 'react';
+import { Currency, SetState } from 'types';
+
+export type Props = {
+  isSaving: boolean;
+  budgetIsUpdated: boolean;
+  currency: Currency;
+  setSelectedTermId: React.Dispatch<React.SetStateAction<string | number | null>>;
+  selectedTermId: string | number | null;
+  budgetId: number;
+  setIsOpen: React.Dispatch<React.SetStateAction<number | undefined>>;
+  totalNav: string;
+  setTotalNav: Dispatch<SetStateAction<string>>;
+  getBudgetingPhasesHandler: () => Promise<void>;
+  setSubtotalEditIsActive: Dispatch<SetStateAction<boolean>>;
+  subtotalEditIsActive: boolean;
+  rateCardUpdated: boolean;
+  countHolidaysUpdated: boolean;
+  projectTypeUpdated: boolean;
+  isReadOnly: boolean;
+  monthlyEditIsActive: boolean;
+  setMonthlyEditIsActive: SetState<boolean>;
+  publishedBudgetIsInEditMode: boolean;
+  setBudgetTotal?: SetState<{ subtotal: number; profit_margin: number }>;
+  budgetPhaseListingItemEdited: boolean;
+  shouldResetTotals?: boolean;
+  setShouldResetTotals?: Dispatch<SetStateAction<boolean>>;
+  isProjectInternal: boolean;
+  isInitialRender: boolean;
+};

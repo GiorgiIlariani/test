@@ -1,0 +1,131 @@
+name: Create New Docker Image
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: ${{ github.ref_name }}
+  cancel-in-progress: true
+
+on:
+  push:
+    branches:
+      - main
+      - staging-**
+  pull_request:
+    branches: main
+    types:
+      - opened
+      - synchronize
+  release:
+    types:
+      - published
+      - released
+  workflow_dispatch:
+    inputs:
+      environment:
+        type: environment
+
+jobs:
+  needs:
+    if: ${{ !(github.event.action == 'published' && github.event.release.prerelease == false) }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Set GitHub environment as output
+        id: gh_env
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]
+          then
+            GH_ENV=${{ inputs.environment }}
+          elif [ "${{ github.ref_name }}" = "main" ]
+          then
+            GH_ENV=development
+          elif [[ "${{ github.ref_name }}" =~ ^staging-v[0-9]+(\.[0-9]+){2}$ ]]
+          then
+            GH_ENV=staging
+          elif [[ "${{ github.ref_name }}" =~ ^v[0-9]+(\.[0-9]+){2}$ && "${{ github.event_name }}" = "release" ]]
+          then
+            if [ "${{ github.event.release.prerelease }}" = true ]
+            then
+              GH_ENV=prerelease
+            else
+              GH_ENV=production
+            fi
+          fi
+
+          if [ -z "$GH_ENV" ]
+          then
+            echo "gh_env=None" >> $GITHUB_OUTPUT
+          else
+            echo "gh_env=$GH_ENV" >> $GITHUB_OUTPUT
+          fi
+    outputs:
+      gh_env: ${{ steps.gh_env.outputs.gh_env }}
+
+  build:
+    needs:
+      - needs
+    runs-on: ubuntu-latest
+    environment: ${{ needs.needs.outputs.gh_env }}
+
+    steps:
+      - name: Checkout application repository
+        uses: actions/checkout@v4
+
+      - name: Checkout ECS Stack actions
+        uses: actions/checkout@v4
+        with:
+          repository: redberryproducts/ecs-stack-actions
+          ref: ${{ vars.ECS_STACK_ACTIONS_VERSION }}
+          path: .github/ecs-stack-actions
+          ssh-key: ${{ secrets.ECS_STACK_ACTIONS_SSH_KEY }}
+          persist-credentials: false
+
+      - name: Run build action
+        id: build
+        uses: ./.github/ecs-stack-actions/build
+        with:
+          project: ${{ vars.PROJECT }}
+          app: ${{ vars.APP }}
+          repository: ${{ github.repository }}
+          ref_name: ${{ github.ref_name }}
+          environment: ${{ needs.needs.outputs.gh_env }}
+          vars_json: ${{ toJson(vars) }}
+          secrets_json: ${{ toJson(secrets) }}
+    outputs:
+      new_image_tag: ${{ steps.build.outputs.new_image_tag }}
+      new_image_digest: ${{ steps.build.outputs.new_image_digest }}
+      ghcr_image: ${{ steps.build.outputs.ghcr_image }}
+
+  deploy:
+    needs:
+      - needs
+      - build
+    if: needs.needs.outputs.gh_env != 'None'
+    environment: ${{ needs.needs.outputs.gh_env }}
+    runs-on: ubuntu-latest
+    concurrency:
+      group: deploy-${{ needs.needs.outputs.gh_env }}
+
+    steps:
+      - name: Checkout ECS Stack actions
+        uses: actions/checkout@v4
+        with:
+          repository: redberryproducts/ecs-stack-actions
+          ref: ${{ vars.ECS_STACK_ACTIONS_VERSION }}
+          path: .github/ecs-stack-actions
+          ssh-key: ${{ secrets.ECS_STACK_ACTIONS_SSH_KEY }}
+          persist-credentials: false
+
+      - name: Run deploy action
+        uses: ./.github/ecs-stack-actions/deploy
+        with:
+          new_image_tag: ${{ needs.build.outputs.new_image_tag }}
+          new_image_digest: ${{ needs.build.outputs.new_image_digest }}
+          project: ${{ vars.PROJECT }}
+          app: ${{ vars.APP }}
+          environment: ${{ needs.needs.outputs.gh_env }}
+          vars_json: ${{ toJson(vars) }}
+          secrets_json: ${{ toJson(secrets) }}
