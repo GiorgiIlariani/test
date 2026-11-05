@@ -35,7 +35,7 @@ const nextConfig = {
 
 module.exports = nextConfig;
 
-const { withSentryConfig } = require('@sentry/nextjs');
+const { withSentryConfig } = require('@sentry/nextjs/config');
 
 module.exports = withSentryConfig(module.exports, {
   silent: true,
@@ -43,5 +43,9 @@ module.exports = withSentryConfig(module.exports, {
   project: 'internal-soft-front',
   widenClientFileUpload: true,
   tunnelRoute: '/monitoring',
-  disableLogger: true,
+  webpack: {
+    treeshake: {
+      removeDebugLogging: true,
+    },
+  },
 });

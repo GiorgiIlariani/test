@@ -105,6 +105,7 @@ const TinyMCE: React.FC<Props> = (props) => {
                   editorRef.current = editor;
                 }}
                 init={{
+                  license_key: 'gpl',
                   statusbar: false,
                   inline_styles: true,
                   selector: 'textarea#emoticons',
@@ -113,13 +114,13 @@ const TinyMCE: React.FC<Props> = (props) => {
                   body_class: props.inputName,
                   plugins: `advlist autolink lists emoticons link ${props.extraPlugins ?? ''}`,
                   toolbar:
-                    'undo redo | formatselect | ' +
+                    'undo redo | blocks | ' +
                     'bold italic | ' +
                     'bullist numlist outdent indent | link emoticons',
                   content_style:
                     "@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap'); html { cursor: text; } body { font-family: 'DM Sans', sans-serif; font-size: 14px; color: oklch(0.141 0.005 285.823); }",
                   placeholder: props.placeholder,
-                  default_link_target: '',
+                  link_default_target: '',
                   link_target_list: false,
                   link_quicklink: true,
                   entity_encoding: 'raw',
